@@ -2,7 +2,7 @@
 function results = simulation(params, output_filename, Dim, bounds)
 
     save_filename = output_filename;
-    results = {};
+    results = cell(1, params.repetitions);
 
     % Chuyển đổi ngưỡng SINR (gamma) từ dB sang tỉ lệ tuyến tính 
     target_SINR_dB = 5; 

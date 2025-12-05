@@ -12,8 +12,6 @@ function fitness = fitness_woa(X_vector, params, H_comm, sensing_beamsteering, g
     S = U + T; % Tổng số luồng
     
     % --- 1. TÁI TẠO BEAMFORMING (X_vector -> F_streams) ---
-    % X_vector (1D, Thực) được tách thành Phần Thực và Phần Ảo để tạo thành 
-    % F_streams (Tensor 3D, Phức)
     
     dim_complex = M_t * N_t * S;
     
@@ -43,9 +41,8 @@ function fitness = fitness_woa(X_vector, params, H_comm, sensing_beamsteering, g
 
     % --- 3. TÍNH VÀ ÁP DỤNG HÀM PHẠT (Penalty Function) ---
     
-    penalty_value = 0; % Tổng giá trị vi phạm ràng buộc
-    
     % a. Phạt SINR (SINR_u >= gamma_linear)
+    penalty_violation_SINR_sum = 0; % SỬA: Biến tích lũy vi phạm SINR
     sigmasq_ue = params.sigmasq_ue;
     % Gọi hàm gốc: compute_SINR.m
     SINR_values = compute_SINR(H_comm, F_comm, F_sensing, sigmasq_ue);
@@ -53,13 +50,16 @@ function fitness = fitness_woa(X_vector, params, H_comm, sensing_beamsteering, g
     for u = 1:U
         % Cộng mức vi phạm: max(0, ngưỡng - SINR_thực tế)
         penalty_u = max(0, gamma_linear - SINR_values(u));
-        penalty_value = penalty_value + penalty_u;
+        % SỬA: Tích lũy vào biến SINR
+        penalty_violation_SINR_sum = penalty_violation_SINR_sum + penalty_u;
     end
     
-    penalty_term_SINR = params.lambda_SINR * penalty_value;
+    penalty_term_SINR = params.lambda_SINR * penalty_violation_SINR_sum;
     
     % b. Phạt Công suất AP tối đa (P_tx_m <= P_max)
     P_max = params.P; 
+    
+    power_violation_sum = 0; % SỬA: KHỞI TẠO biến tích lũy vi phạm Công suất
     
     for m_t = 1:M_t
         % Tính tổng công suất phát của AP thứ m_t (tổng công suất trên tất cả luồng)
@@ -67,13 +67,18 @@ function fitness = fitness_woa(X_vector, params, H_comm, sensing_beamsteering, g
         
         % Cộng mức vi phạm: max(0, P_thực tế - P_max)
         penalty_P_m = max(0, P_tx_m - P_max);
-        penalty_value = penalty_value + penalty_P_m;
+        
+        % SỬA: Tích lũy vào biến Công suất
+        power_violation_sum = power_violation_sum + penalty_P_m;
+        
+        % LƯU Ý: Không tích lũy vào biến SINR (penalty_violation_SINR_sum) ở đây!
     end
     
-    penalty_term_Power = params.lambda_Power * power_penalty_value; % Lỗi typo trong hướng dẫn trước: phải là power_penalty_value
+    % SỬA: Sử dụng biến power_violation_sum đã được tính toán
+    penalty_term_Power = params.lambda_Power * power_violation_sum;
     
     % --- 4. TÍNH GIÁ TRỊ FITNESS CUỐI CÙNG ---
-    % Thêm penalty_term_Power vào công thức.
+    % Cộng các Term Phạt (đã nhân lambda) vào Mục tiêu gốc
     fitness = objective_term + penalty_term_SINR + penalty_term_Power;
     
     % Xử lý trường hợp lỗi (nếu xảy ra NaN hoặc Inf)

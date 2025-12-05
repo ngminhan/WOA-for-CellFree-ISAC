@@ -17,7 +17,7 @@ params.sigmasq_ue = 1; % UE receiver noise
 params.sigmasq_radar_rcs = 0.1; % Radar RCS variable 
 params.sigmasq_radar_receiver = 1; % Radar receiver noise
 
-params.repetitions = 1000;
+params.repetitions = 10; % Tạm thời giảm để chạy test
 
 % Geometry setup
 params.geo.line_length = 100;
@@ -28,9 +28,9 @@ params.geo.max_dist = params.geo.line_length;
 
 %% Parameters for Whale Optimization Algorithm (WOA) 
 % Population Size
-params.woa.pop_size = 50;
+params.woa.pop_size = 30; % Tạm thời giảm để chạy test
 % Max Iterations
-params.woa.max_iter = 200; 
+params.woa.max_iter = 50; % Tạm thời giảm để chạy test
 
 %% Penalty Factors for Fitness Function 
 % Phạt cho vi phạm ràng buộc SINR (Rất lớn) 

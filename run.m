@@ -1,4 +1,4 @@
-cvx_path = 'C:\Users\umt\Desktop\cvx'; % Path of the CVX installation
+cvx_path = '/Users/nguyenminhan/Desktop/Documents/GitHub/cvx'; % Path of the CVX installation
 addpath(genpath(cvx_path)); % Add CVX to the path
 addpath(genpath('./')); % Add paths of subfolders
 

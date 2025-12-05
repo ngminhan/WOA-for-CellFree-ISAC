@@ -44,9 +44,6 @@ function [X_best, fitness_best] = WOA_Solver(fitness_func, dim, bounds, params, 
                 % 1. Tận dụng (Exploitation) HOẶC Khám phá (Exploration)
                 if abs(A) < 1 
                     % Bao vây Con mồi (Exploitation) 
-
-[Image of Whale Optimization Algorithm flow chart]
-
                     D = abs(C .* X_best - pop(i, :));
                     new_pos = X_best - A .* D;
                 else
