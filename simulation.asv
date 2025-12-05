@@ -92,6 +92,11 @@ function results = simulation(params, output_filename, Dim, bounds)
             % SSNR_opt là giá trị Sensing SNR đạt được sau cùng
             results{rep}.power{p_i}{solution_counter}.SSNR_opt = results{rep}.power{p_i}{solution_counter}.SSNR; 
             solution_counter = solution_counter + 1;
+            
+            % --- KHỐI JSC (SDP) GỐC ĐÃ BỊ XOÁ/COMMENT ---
+            % [Q_jsc, feasible, F_jsc_SSNR] = opt_jsc_SDP(H_comm, params.sigmasq_ue, SINR_min_SOCP_NS, sensing_beamsteering, sens_streams, params.sigmasq_radar_rcs, params.P);
+            % ...
+            % ... (code SDP cũ đã bị loại bỏ)
         end
     end
     

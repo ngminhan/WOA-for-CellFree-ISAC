@@ -26,4 +26,16 @@ params.geo.target_y = 50;
 params.geo.min_dist = 0;
 params.geo.max_dist = params.geo.line_length;
 
+%% Parameters for Whale Optimization Algorithm (WOA) 
+% Population Size
+params.woa.pop_size = 50;
+% Max Iterations
+params.woa.max_iter = 200; 
+
+%% Penalty Factors for Fitness Function 
+% Phạt cho vi phạm ràng buộc SINR (Rất lớn) 
+params.lambda_SINR = 1e6; 
+% Phạt cho vi phạm ràng buộc Công suất AP (Lớn)
+params.lambda_Power = 1e5; 
+
 
