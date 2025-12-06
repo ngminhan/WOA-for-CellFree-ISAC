@@ -38,4 +38,9 @@ params.lambda_SINR = 1e6;
 % Phạt cho vi phạm ràng buộc Công suất AP (Lớn)
 params.lambda_Power = 1e5; 
 
+% Ngưỡng Sensing SNR tối thiểu (ví dụ: 0.5 linear scale)
+params.S_th = 0.5; 
+% Phạt cho vi phạm Sensing SNR
+params.lambda_S = 1e6; 
+
 

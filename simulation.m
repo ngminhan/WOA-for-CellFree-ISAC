@@ -1,9 +1,8 @@
 %% Simulation
 function results = simulation(params, output_filename, Dim, bounds)
-
     save_filename = output_filename;
-    results = cell(1, params.repetitions);
-
+    results = cell(1, params.repetitions); 
+    
     % Chuyển đổi ngưỡng SINR (gamma) từ dB sang tỉ lệ tuyến tính 
     target_SINR_dB = 5; 
     % Giả sử ngưỡng mục tiêu là 5 dB, bạn có thể điều chỉnh 
@@ -24,10 +23,6 @@ function results = simulation(params, output_filename, Dim, bounds)
     
         % Channel generation
         H_comm = LOS_channel(AP_pos, UE_pos, params.N_t);
-        % H_sensing = radar_LOS_channel(target_pos, AP_pos, AP_pos, N_t, N_t, params.sigmasq_radar_rcs);
-            
-        % results{rep}.H_comm = H_comm;
-        % results{rep}.H_sensing = H_sensing;
         
         %% Compute sensing beams
         [sensing_angle, ~] = compute_angle_dist(AP_pos, target_pos);
@@ -52,8 +47,12 @@ function results = simulation(params, output_filename, Dim, bounds)
     
     
             
-            %% NS Sensing - RZF Comm (Baseline)
+            %% NS Sensing - RZF Comm (BASELINE - WARM START INPUT)
             F_star_RZF = beam_regularized_zeroforcing(H_comm, P_comm, params.sigmasq_ue)*sqrt(P_comm);
+            
+            % THÊM WARM START: Ghép F_star_RZF (F_comm) với luồng cảm biến bằng 0 (F_sensing)
+            F_star_RZF_streams = cat(1, F_star_RZF, zeros(params.T, params.M_t, params.N_t));
+            
             results{rep}.power{p_i}{solution_counter} = compute_metrics(H_comm, F_star_RZF, params.sigmasq_ue, sensing_beamsteering, F_sensing_NS, params.sigmasq_radar_rcs);
             results{rep}.power{p_i}{solution_counter}.name = 'NS+RZF';
             solution_counter = solution_counter + 1;
@@ -75,21 +74,18 @@ function results = simulation(params, output_filename, Dim, bounds)
             solution_counter = solution_counter + 1;
             
             %% JSC (WOA Solver)
-            % Sử dụng SINR_min_SOCP_NS làm ngưỡng SINR tối thiểu (gamma) cho WOA
             sens_streams = 1;
             
-            % GỌI WOA SOLVER
-            % Hàm @fitness_woa cần được truyền tất cả các tham số cấu trúc
-            [X_best_woa, ~] = WOA_Solver(@fitness_woa, Dim, bounds, params, H_comm, sensing_beamsteering, SINR_min_SOCP_NS);
+            % GỌI WOA SOLVER: THÊM F_star_RZF_streams làm tham số Khởi tạo Warm Start
+            [X_best_woa, ~] = WOA_Solver(@fitness_woa, Dim, bounds, params, H_comm, sensing_beamsteering, SINR_min_SOCP_NS, F_star_RZF_streams);
             
             % TÁI TẠO BEAMFORMING VECTORS
             [F_comm_woa, F_sensing_woa] = reconstruct_F(X_best_woa, params);
-
+            
             % LƯU KẾT QUẢ WOA VÀO CẤU TRÚC KẾT QUẢ
             results{rep}.power{p_i}{solution_counter} = compute_metrics(H_comm, F_comm_woa, params.sigmasq_ue, sensing_beamsteering, F_sensing_woa, params.sigmasq_radar_rcs);
-            results{rep}.power{p_i}{solution_counter}.feasible = true; % WOA luôn trả về kết quả
+            results{rep}.power{p_i}{solution_counter}.feasible = true;
             results{rep}.power{p_i}{solution_counter}.name = strcat('JSC+WOA_',num2str(sens_streams));
-            % SSNR_opt là giá trị Sensing SNR đạt được sau cùng
             results{rep}.power{p_i}{solution_counter}.SSNR_opt = results{rep}.power{p_i}{solution_counter}.SSNR; 
             solution_counter = solution_counter + 1;
         end
